@@ -37,6 +37,44 @@ describe('total likes', () => {
   })
 })
 
+describe('most liked blog', () => {
+  test('of empty list as empty object', () => {
+    const blogs = []
+
+    const favoriteBlog = listHelper.favoriteBlog(blogs)
+    expect(favoriteBlog).toEqual({})
+  })
+
+  test('when list has one blog', () => {
+    const blogs = [
+      {
+        _id: '5a422a851b54a676234d17f7',
+        title: 'React patterns',
+        author: 'Michael Chan',
+        url: 'https://reactpatterns.com/',
+        likes: 7,
+        __v: 0,
+      },
+    ]
+
+    const topBlog = listHelper.favoriteBlog(blogs)
+    expect(topBlog).toEqual({
+      title: 'React patterns',
+      author: 'Michael Chan',
+      likes: 7,
+    })
+  })
+
+  test('of a bigger list is found right', () => {
+    const topBlog = listHelper.favoriteBlog(testBlogs)
+    expect(topBlog).toEqual({
+      title: 'Canonical string reduction',
+      author: 'Edsger W. Dijkstra',
+      likes: 12,
+    })
+  })
+})
+
 const testBlogs = [
   {
     _id: '5a422a851b54a676234d17f7',
