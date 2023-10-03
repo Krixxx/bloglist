@@ -75,6 +75,75 @@ describe('most liked blog', () => {
   })
 })
 
+describe('most blogs', () => {
+  test('when list is empty', () => {
+    const blogs = []
+
+    const mostBlogs = listHelper.mostBlogs(blogs)
+    expect(mostBlogs).toEqual({})
+  })
+
+  test('when list has one blog', () => {
+    const blogs = [
+      {
+        _id: '5a422a851b54a676234d17f7',
+        title: 'React patterns',
+        author: 'Michael Chan',
+        url: 'https://reactpatterns.com/',
+        likes: 7,
+        __v: 0,
+      },
+    ]
+
+    const mostBlogs = listHelper.mostBlogs(blogs)
+    expect(mostBlogs).toEqual({
+      author: 'Michael Chan',
+      blogs: 1,
+    })
+  })
+
+  test('of a bigger list', () => {
+    const mostBlogs = listHelper.mostBlogs(testBlogs)
+    expect(mostBlogs).toEqual({
+      author: 'Robert C. Martin',
+      blogs: 3,
+    })
+  })
+})
+
+describe('most likes per author', () => {
+  test('when list is empty', () => {
+    const blogs = []
+
+    const mostBlogs = listHelper.mostLikes(blogs)
+    expect(mostBlogs).toEqual({})
+  })
+
+  test('when list has one blog', () => {
+    const blogs = [
+      {
+        _id: '5a422b891b54a676234d17fa',
+        title: 'First class tests',
+        author: 'Robert C. Martin',
+        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+        likes: 10,
+        __v: 0,
+      },
+    ]
+
+    const mostBlogs = listHelper.mostLikes(blogs)
+    expect(mostBlogs).toEqual({
+      author: 'Robert C. Martin',
+      likes: 10,
+    })
+  })
+
+  test('of a bigger list', () => {
+    const mostLikes = listHelper.mostLikes(testBlogs)
+    expect(mostLikes).toEqual({ author: 'Edsger W. Dijkstra', likes: 17 })
+  })
+})
+
 const testBlogs = [
   {
     _id: '5a422a851b54a676234d17f7',
@@ -104,7 +173,7 @@ const testBlogs = [
     _id: '5a422b891b54a676234d17fa',
     title: 'First class tests',
     author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll',
+    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
     likes: 10,
     __v: 0,
   },
