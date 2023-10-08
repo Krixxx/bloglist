@@ -34,6 +34,27 @@ test('verify that unique property of the blog post is named id', async () => {
   })
 })
 
+test('a valid blog post can be added', async () => {
+  const newBlog = {
+    title: 'Canonical string reduction',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    likes: 12,
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAfterAdding = await helper.blogsInDb()
+  expect(blogsAfterAdding).toHaveLength(helper.initialBlogs.length + 1)
+
+  const titles = blogsAfterAdding.map((blog) => blog.title)
+  expect(titles).toContain('Canonical string reduction')
+})
+
 afterAll(async () => {
   await mongoose.connection.close()
 })
