@@ -55,6 +55,20 @@ test('a valid blog post can be added', async () => {
   expect(titles).toContain('Canonical string reduction')
 })
 
+test('blog without likes property is added  with default value of 0', async () => {
+  const newBlog = {
+    title: 'Canonical string reduction',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+  }
+
+  expect(newBlog.likes).toBeUndefined()
+
+  const response = await api.post('/api/blogs').send(newBlog).expect(201)
+
+  expect(response.body.likes).toBe(0)
+})
+
 afterAll(async () => {
   await mongoose.connection.close()
 })
