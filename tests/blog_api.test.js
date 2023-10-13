@@ -35,6 +35,15 @@ describe('when there are some initial blogs', () => {
 })
 
 describe('creating new blog', () => {
+  beforeEach(async () => {
+    await User.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'root', passwordHash })
+
+    await user.save()
+  })
+
   test('a valid blog post can be added', async () => {
     const newBlog = {
       title: 'Canonical string reduction',
@@ -43,9 +52,12 @@ describe('creating new blog', () => {
       likes: 12,
     }
 
+    const token = await helper.userToken()
+
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set('Authorization', token)
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
@@ -63,9 +75,15 @@ describe('creating new blog', () => {
       url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
     }
 
+    const token = await helper.userToken()
+
     expect(newBlog.likes).toBeUndefined()
 
-    const response = await api.post('/api/blogs').send(newBlog).expect(201)
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set('Authorization', token)
+      .expect(201)
 
     expect(response.body.likes).toBe(0)
   })
@@ -77,7 +95,13 @@ describe('creating new blog', () => {
       likes: 10,
     }
 
-    await api.post('/api/blogs').send(newBlog).expect(400)
+    const token = await helper.userToken()
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set('Authorization', token)
+      .expect(400)
 
     const blogsAfterSaving = await helper.blogsInDb()
 
@@ -91,11 +115,27 @@ describe('creating new blog', () => {
       likes: 10,
     }
 
-    await api.post('/api/blogs').send(newBlog).expect(400)
+    const token = await helper.userToken()
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set('Authorization', token)
+      .expect(400)
 
     const blogsAfterSaving = await helper.blogsInDb()
 
     expect(blogsAfterSaving).toHaveLength(helper.initialBlogs.length)
+  })
+
+  test('adding blog fails if no token is provided and gets back 401 response', async () => {
+    const newBlog = {
+      title: 'Canonical string reduction',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    }
+
+    await api.post('/api/blogs').send(newBlog).expect(401)
   })
 })
 
@@ -115,19 +155,45 @@ describe('editing a blog', () => {
 })
 
 describe('deletion of a blog', () => {
-  test('delete a note and succeed with status code 204 if id is valid', async () => {
-    const blogsAtBeginning = await helper.blogsInDb()
-    const blogToDelete = blogsAtBeginning[0]
+  beforeEach(async () => {
+    await User.deleteMany({})
 
-    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204)
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'root', passwordHash })
+
+    await user.save()
+  })
+
+  test('delete a note and succeed with status code 204 if id is valid', async () => {
+    const newBlog = {
+      title: 'Canonical string reduction',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    }
+
+    const token = await helper.userToken()
+
+    const addedBlog = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set('Authorization', token)
+
+    const blog = addedBlog.body
+
+    const blogsAfterSaving = await helper.blogsInDb()
+
+    await api
+      .delete(`/api/blogs/${blog.id}`)
+      .set('Authorization', token)
+      .expect(204)
 
     const blogsAfterDelete = await helper.blogsInDb()
 
-    expect(blogsAfterDelete).toHaveLength(helper.initialBlogs.length - 1)
+    expect(blogsAfterDelete).toHaveLength(blogsAfterSaving.length - 1)
 
     const titles = blogsAfterDelete.map((blog) => blog.title)
 
-    expect(titles).not.toContain(blogToDelete.title)
+    expect(titles).not.toContain(blog.title)
   })
 })
 
